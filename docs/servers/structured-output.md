@@ -145,7 +145,7 @@ A `list[...]` isn't a JSON object either, so it gets the `{"result": ...}` wrapp
 
 Ask for a two-day forecast and `structured_content` is `{"result": [{...}, {...}]}`. `content` becomes **two** `TextContent` blocks, one per item: a list is flattened for the model rather than dumped as one string.
 
-`tuple[...]`, unions, and `Optional[...]` are wrapped the same way.
+`tuple[...]`, unions, and `Optional[...]` are wrapped the same way, and so are a bare `list` or `tuple` with no item type.
 
 ## Dictionaries
 
@@ -167,7 +167,7 @@ Ask for a two-day forecast and `structured_content` is `{"result": [{...}, {...}
 result.structured_content  # {"London": 16.2, "Reykjavik": 4.4}
 ```
 
-The keys must be `str`. A `dict[int, float]` can't be a JSON object, so it falls back to the `{"result": ...}` wrapper.
+The keys must be `str`. A `dict[int, float]` can't be a JSON object, so it falls back to the `{"result": ...}` wrapper. A bare `-> dict` is published as an object with any properties, and its result passes through unwrapped.
 
 Dictionary results use Pydantic's `TypeAdapter` for validation and serialization. If you inspect a tool's `FuncMetadata.output_model`, it holds the dictionary type annotation with its schema title.
 

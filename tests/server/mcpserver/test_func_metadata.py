@@ -262,6 +262,41 @@ def test_skip_names():
     assert model.also_keep == 2.5  # type: ignore
 
 
+def test_structured_output_unparameterized_containers():
+    """Bare `dict`, `list` and `tuple` keep structured output, like their generic forms."""
+
+    def func_dict() -> dict:  # pyright: ignore[reportMissingTypeArgument]
+        return {"a": 1, "b": [1, 2]}  # pyright: ignore[reportUnknownVariableType]
+
+    meta = func_metadata(func_dict)
+    assert meta.output_schema == IsPartialDict(type="object", title="func_dictDictOutput")
+    assert not meta.wrap_output
+    result = meta.convert_result(func_dict())
+    assert isinstance(result, CallToolResult)
+    assert result.structured_content == {"a": 1, "b": [1, 2]}
+
+    def func_list() -> list:  # pyright: ignore[reportMissingTypeArgument]
+        return [1, "two"]  # pyright: ignore[reportUnknownVariableType]
+
+    meta = func_metadata(func_list)
+    assert meta.wrap_output
+    result = meta.convert_result(func_list())
+    assert isinstance(result, CallToolResult)
+    assert result.structured_content == {"result": [1, "two"]}
+
+    def func_tuple() -> tuple:  # pyright: ignore[reportMissingTypeArgument]
+        return (1, "two")
+
+    meta = func_metadata(func_tuple)
+    assert meta.wrap_output
+    result = meta.convert_result(func_tuple())
+    assert isinstance(result, CallToolResult)
+    assert result.structured_content == {"result": [1, "two"]}
+
+    # structured_output=True used to reject these as "not serializable for structured output"
+    assert func_metadata(func_dict, structured_output=True).output_schema is not None
+
+
 def test_structured_output_dict_str_types():
     """Test that dict[str, T] types are handled without wrapping."""
 

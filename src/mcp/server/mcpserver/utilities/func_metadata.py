@@ -535,7 +535,15 @@ def _create_output_model(original_annotation: Any, type_expr: Any, func_name: st
             model = _create_wrapped_model(func_name, original_annotation)
             wrap_output = True
 
-        # Case 4: Other class types (dataclasses, regular classes with annotations)
+        # Case 4: Unparameterized `dict`, `list` and `tuple`. They have no type hints, so Case 5
+        # would silently drop their structured output: treat them like their generic forms instead.
+        elif type_annotation is dict:
+            model = Annotated[dict[Any, Any], Field(title=f"{func_name}DictOutput")]
+        elif type_annotation is list or type_annotation is tuple:
+            model = _create_wrapped_model(func_name, original_annotation)
+            wrap_output = True
+
+        # Case 5: Other class types (dataclasses, regular classes with annotations)
         else:
             type_hints = get_type_hints(type_annotation)
             if type_hints:
