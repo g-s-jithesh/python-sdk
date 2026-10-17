@@ -263,7 +263,7 @@ def test_skip_names():
 
 
 def test_structured_output_unparameterized_containers():
-    """Bare `dict`, `list` and `tuple` keep structured output, like their generic forms."""
+    """Bare `dict`, `list`, `tuple`, `set` and `frozenset` keep structured output, like their generic forms."""
 
     def func_dict() -> dict:  # pyright: ignore[reportMissingTypeArgument]
         return {"a": 1, "b": [1, 2]}  # pyright: ignore[reportUnknownVariableType]
@@ -292,6 +292,19 @@ def test_structured_output_unparameterized_containers():
     result = meta.convert_result(func_tuple())
     assert isinstance(result, CallToolResult)
     assert result.structured_content == {"result": [1, "two"]}
+
+    def func_set() -> set:  # pyright: ignore[reportMissingTypeArgument]
+        return {1}  # pyright: ignore[reportUnknownVariableType]
+
+    def func_frozenset() -> frozenset:  # pyright: ignore[reportMissingTypeArgument]
+        return frozenset({1})  # pyright: ignore[reportUnknownVariableType]
+
+    for func in (func_set, func_frozenset):  # pyright: ignore[reportUnknownVariableType]
+        meta = func_metadata(func)
+        assert meta.wrap_output
+        result = meta.convert_result(func())
+        assert isinstance(result, CallToolResult)
+        assert result.structured_content == {"result": [1]}
 
     # structured_output=True used to reject these as "not serializable for structured output"
     assert func_metadata(func_dict, structured_output=True).output_schema is not None

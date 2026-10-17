@@ -145,7 +145,7 @@ A `list[...]` isn't a JSON object either, so it gets the `{"result": ...}` wrapp
 
 Ask for a two-day forecast and `structured_content` is `{"result": [{...}, {...}]}`. `content` becomes **two** `TextContent` blocks, one per item: a list is flattened for the model rather than dumped as one string.
 
-`tuple[...]`, unions, and `Optional[...]` are wrapped the same way, and so are a bare `list` or `tuple` with no item type.
+`tuple[...]`, unions, and `Optional[...]` are wrapped the same way, and so are a bare `list`, `tuple`, `set` or `frozenset` with no item type.
 
 ## Dictionaries
 
